@@ -1,0 +1,150 @@
+<?php if (!defined('THINK_PATH')) exit();?><!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/record_system/Public/Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="/record_system/Public/Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="/record_system/Public/Css/style.css" />
+    <link rel="stylesheet" type="text/css" href="/record_system/Public/easyui/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="/record_system/Public/easyui/themes/icon.css">
+	<script type="text/javascript" src="/record_system/Public/easyui/jquery-1.8.0.min.js"></script>
+	<script type="text/javascript" src="/record_system/Public/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/record_system/Public/Js/bootstrap.js"></script>
+    <script type="text/javascript" src="/record_system/Public/Js/ckform.js"></script>
+    <script type="text/javascript" src="/record_system/Public/Js/common.js"></script>
+
+ 
+
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+
+
+    </style>
+</head>
+<body>
+<form class="form-inline definewidth m20" action="index.html" method="get">  
+    查询号码：
+    <input type="text" name="n" id="n" class="abc input-default" placeholder="" value="">&nbsp;&nbsp;  
+    <button type="button" class="btn btn-primary" id="findcall">查询</button>&nbsp;&nbsp; 
+    <button type="button" class="btn btn-success" id="adduser">新增记录</button>&nbsp;&nbsp;
+    <button type="button" class="btn btn-success" id="edituser">编辑纪录</button>&nbsp;&nbsp;
+    <button type="button" class="btn btn-failed" id="deluser">删除纪录</button>&nbsp;&nbsp;
+</form>
+<table id="dg" title="My Calls" class="easyui-datagrid" style="width:1000px;height:1000px"
+            url="/record_system/index.php/Home/Record/getcalls"
+            rownumbers="true" fitColumns="true" singleSelect="true">
+    <thead>
+    <tr>
+        <th field="_id" width="50">记录id</th>
+        <th field="call_number" width="50">拨打号码</th>
+        <th field="answer_number" width="50">回复号码</th>
+        <th field="time" width="50">拨打时间</th>
+        <th field="is_callup" width="50">是否接通</th>
+    </tr>
+    </thead>
+    <div id="dlg" class="easyui-dialog" style="width:700px;height:500px;padding:10px 20px"
+		closed="true" buttons="#dlg-buttons">
+	<form id="fm" method="post">
+		<div class="fitem">
+			<label>拨打号码</label>
+			<input name="call_number" class="easyui-validatebox" id="call_number">
+		</div>
+		<div class="fitem">
+			<label>回复号码</label>
+			<input name="answer_number" class="easyui-validatebox" id="answer_number">
+		</div>
+		<div class="fitem">
+			<label>是否接通</label>
+			<input name="is_callup" class="easyui-validatebox" id="is_callup">
+		</div>
+	</form>
+</div>
+<div id="dlg-buttons">
+	<a href="#" class="easyui-linkbutton" iconCls="icon-ok" onclick="saveCall()" width="100">保存</a>
+	<a href="#" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" width="100">取消</a>
+</div>
+</table>
+</body>
+</html>
+<script>
+    function saveCall(){
+        var call_number = $("#call_number").val();
+        var answer_number = $("#answer_number").val();
+        var is_callup = $("#is_callup").val();
+        $.post(url,
+            {
+                id:id,
+                call_number:call_number,
+                answer_number:answer_number,
+                is_callup:is_callup,
+            },
+            function(data, status) {
+                alert(data["msg"]);
+                $("#dlg").dialog("close");
+                $("#dg").datagrid("reload");
+            });
+}
+
+    $(function () {
+        
+        $('#edituser').click(function() {
+                
+                var row = $('#dg').datagrid('getSelected');
+                if (row) {
+                	$('#dlg').dialog('open').dialog('setTitle','修改');
+                	$("#call_number").val(row.call_number);
+                    $("#answer_number").val(row.answer_number);
+                    $("#is_callup").val(row.is_callup);
+                    id = row._id;
+                	url = "/record_system/index.php/Home/Record/updata";
+                }
+        });
+		$('#adduser').click(function(){
+				$('#dlg').dialog('open').dialog('setTitle','添加');
+	            $('#fm').form('clear');
+                id = null;
+	            url = "/record_system/index.php/Home/Record/addcall";
+		 });
+         
+         $('#deluser').click(function() {
+                var row = $('#dg').datagrid('getSelected');
+            	if (row){
+            		$.messager.confirm('Confirm','是否删除记录?',function(r){
+            			if (r){
+            				$.post("/record_system/index.php/Home/Record/delcall",{id:row._id},function(result){
+            					
+            						$('#dg').datagrid('reload');	// reload the user data
+            				},'json');
+            			}
+            		});
+            	}
+         });
+         
+         $('#findcall').click(function() {
+             alert("heheda");
+                var n = $('#n').val();
+                 if (n.length > 0) {
+                     $('#dg').datagrid('load', {
+		             number:n
+	           });
+                } else {
+                    $('#dg').datagrid('reload');
+                }
+         });
+    });
+</script>
